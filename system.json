@@ -2,9 +2,9 @@
   "name": "ptu",
   "title": "Pokemon Tabletop United",
   "description": "A Pen and Paper Roleplaying Game Set in the World of Pokemon",
-  "version": "1.4.0",
+  "version": "1.5-Beta-7",
   "minimumCoreVersion": "0.8.6",
-  "compatibleCoreVersion": "0.8.6",
+  "compatibleCoreVersion": "0.8.9",
   "templateVersion": 2,
   "author": "Dylan Piera, Tymo Wessel, Jeffrey Hollander, Efren A. Mariño & Cody Swendrowski",
   "esmodules": ["module/ptu.js"],
@@ -83,6 +83,13 @@
       "system": "ptu"
     },
     {
+      "label": "uranium & sage dex",
+      "entity": "Item",
+      "name": "uranium-and-sage-dex",
+      "path": "packs/uranium-and-sage-dex.db",
+      "system": "ptu"
+    },
+    {
       "label": "habitats",
       "entity": "RollTable",
       "name": "habitats",
@@ -101,10 +108,10 @@
   "gridUnits": "m",
   "primaryTokenAttribute": "health",
   "secondaryTokenAttribute": "exp",
-  "url": "https://github.com/dylanpiera/Foundry-Pokemon-Tabletop-United-System",
-  "manifest": "https://github.com/dylanpiera/Foundry-Pokemon-Tabletop-United-System/releases/latest/download/system.json",
-  "changelog": "https://github.com/dylanpiera/Foundry-Pokemon-Tabletop-United-System/raw/master/changelog.md",
-  "download": "https://github.com/dylanpiera/Foundry-Pokemon-Tabletop-United-System/releases/latest/download/system.zip",
+  "url": "https://github.com/dylanpiera/Foundry-Pokemon-Tabletop-United-System",  
+  "manifest": "https://github.com/dylanpiera/Foundry-Pokemon-Tabletop-United-System/raw/development/system.json",
+  "changelog": "https://github.com/dylanpiera/Foundry-Pokemon-Tabletop-United-System/raw/development/changelog.md",
+  "download": "https://github.com/dylanpiera/Foundry-Pokemon-Tabletop-United-System/archive/development.zip",
   "initiative": "",
   "license": "LICENSE.txt"
 }

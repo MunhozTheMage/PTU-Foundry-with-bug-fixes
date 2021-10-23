@@ -1,3 +1,4 @@
+import { sendItemMessage } from '../item/item-sheet.js';
 import { debug, error, log, PrepareMoveData } from '../ptu.js'
 
 /**
@@ -144,6 +145,30 @@ export class PTUGen8CharacterSheet extends ActorSheet {
 		// Add Inventory Item
 		html.find('.item-create').click(this._onItemCreate.bind(this));
 
+		// Item to Chat
+		html.find('.item-to-chat').click((ev) => {
+			const li = $(ev.currentTarget).parents('.item');
+			const item = this.actor.items.get(li.data('itemId'));
+			switch(item.type) {
+				case "move":
+					return sendMoveMessage({
+						speaker: ChatMessage.getSpeaker({
+							actor: this.actor
+						}),
+						name: item.name,
+						move: item.data.data,
+						templateType: 'details'
+					});
+				default: 
+					return sendItemMessage({
+						speaker: ChatMessage.getSpeaker({
+							actor: this.actor
+						}),
+						item: item
+					});
+			}
+		});
+
 		// Update Inventory Item
 		html.find('.item-edit').click((ev) => {
 			const li = $(ev.currentTarget).parents('.item');
@@ -244,7 +269,6 @@ export class PTUGen8CharacterSheet extends ActorSheet {
 			handled = true;
 
 			const oldItem = actor.items.getName(item.data.name);
-			console.log(oldItem, item);
 			if(oldItem.id != item.id && oldItem.data.data.quantity) {
 				const data = duplicate(oldItem.data);
 				data.data.quantity++;
@@ -294,9 +318,6 @@ export class PTUGen8CharacterSheet extends ActorSheet {
 			// Finally, create the effect!
 			debug("Created new effect",itemData);
 			return this.actor.createEmbeddedDocuments(itemData.type, [itemData]);
-		}
-		if(itemData.type === "dexentry") {
-
 		}
 
 		// Finally, create the item!
@@ -427,7 +448,8 @@ export class PTUGen8CharacterSheet extends ActorSheet {
 				damageRoll: damageRoll,
 				critRoll: critRoll,
 				templateType: MoveMessageTypes.FULL_ATTACK,
-				crit: crit
+				crit: crit,
+				isCrit: crit == CritOptions.CRIT_HIT
 			});
 		}
 
@@ -442,7 +464,8 @@ export class PTUGen8CharacterSheet extends ActorSheet {
 					name: move.name,
 					move: move.data,
 					templateType: MoveMessageTypes.DAMAGE,
-					crit: crit
+					crit: crit,
+					isCrit: crit == CritOptions.CRIT_HIT
 				});
 			}
 
@@ -487,6 +510,7 @@ export class PTUGen8CharacterSheet extends ActorSheet {
 				speaker: ChatMessage.getSpeaker({
 					actor: this.actor
 				}),
+				name: move.name,
 				move: move.data,
 				templateType: MoveMessageTypes.DETAILS
 			}).then(data => debug(data))
@@ -514,6 +538,7 @@ export class PTUGen8CharacterSheet extends ActorSheet {
 						speaker: ChatMessage.getSpeaker({
 							actor: this.actor
 						}),
+						name: move.name,
 						move: move.data,
 						templateType: MoveMessageTypes.DETAILS
 					}).then(data => debug(data))
@@ -540,7 +565,7 @@ export class PTUGen8CharacterSheet extends ActorSheet {
 function CalculateAcRoll(moveData, actor) {
 	return new Roll('1d20-@ac+@acBonus', {
 		ac: (parseInt(moveData.ac) || 0),
-		acBonus: (actor.flags?.ptu?.is_blind ? actor.flags?.ptu?.is_totally_blind ? -10 : -6 : 0) + (parseInt(actor.data.modifiers.acBonus?.total) || 0)
+		acBonus: (parseInt(actor.data.modifiers.acBonus?.total) || 0)
 	})
 }
 
@@ -576,19 +601,6 @@ function GetDiceResult(roll) {
 	return diceResult;
 }
 
-function PerformAcRoll(roll, move, actor) {
-	sendMoveRollMessage(roll, {
-		speaker: ChatMessage.getSpeaker({
-			actor: actor
-		}),
-		name: move.name,
-		move: move.data,
-		templateType: MoveMessageTypes.TO_HIT
-	}).then(_ => log(`Rolling to hit for ${actor.name}'s ${move.name}`));
-
-	return GetDiceResult(roll);
-}
-
 async function sendMoveRollMessage(rollData, messageData = {}) {
 	if (!rollData._evaluated) await rollData.evaluate({async: true});
 
@@ -596,7 +608,9 @@ async function sendMoveRollMessage(rollData, messageData = {}) {
 		user: game.user.id,
 		sound: CONFIG.sounds.dice,
 		templateType: MoveMessageTypes.DAMAGE,
-		verboseChatInfo: game.settings.get("ptu", "verboseChatInfo") ?? false
+		verboseChatInfo: game.settings.get("ptu", "verboseChatInfo") ?? false,
+		crp: game.settings.get("ptu", "combatRollPreference"),
+		cdp: game.settings.get("ptu", "combatDescPreference"),
 	}, messageData);
 
 	messageData.roll = rollData;

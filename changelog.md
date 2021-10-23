@@ -1,3 +1,65 @@
+# Welcome to the Beta!
+Hey there! You are on the Beta Branch. If you ever have any feedback please do share with us over on [Github](https://github.com/dylanpiera/Foundry-Pokemon-Tabletop-United-System/issues) or [Discord](https://discord.gg/fE3w59q)
+
+## 1.5-Beta-7 - Fixes & Small Enhancements
+Today we have mostly bug fixes and small enhancements.
+
+### Enhancements:
+- Added Uranium & Sage dex Compendium.
+- Skill dice pools now max out at 6 dice, so virutoso doesn't change the pool to 8d6.
+- Moves with "--" initiative will now always hit.
+- Blindness now applies the accuracy lowering debuff through AE instead of a hidden modifier.
+- Throwing Mastery edge now has an AE that increases the Actor's throwing range capability by 2.
+
+### Bugfixes:
+- Fixed Darmanitan-Normal being unable to be generated.
+- Fixed Move-snippets not working at all for Trainer Moves.
+
+## 1.5-Beta-6 - Dex Drag-in Update
+Hey everyone! It's been a while since I've last seen you guys. It's been about a month and a half since the last beta release, yikes!
+Either way, I needed a summer break, but now I'm back and ready to continue work on the system. So expect more updates in the near future!
+
+For today I've brought you changes in regards to the Dex Drag-In system courtesy of VoidPhoenix, thanks a ton man for adding these missing features, and sorry that it took a while before I could validate them haha.
+
+### Dex Drag-In changes
+- Newly generated actors are put in a folder with the same name as the current scene.
+- Added support for (random) Shiny Generation.
+- Added Level Range (min-max), Shiny Chance, Stat Randomness & Prevent Evolution options to the pop-up.
+  - Default options can be set in settings.
+
+### Other Changes
+- Fixed Trainer AP not showing as a bar option.
+- Automated Tangled Feet abilities.
+- Added a default setting for what the Transfer Ownership api should set the "default" permission to.
+
+## 1.5-Beta-5 - Bug Fixes Pt. 2
+- Fixed allowing dex entries to be created multiple times on a sheet when dragged in from compendium.
+- Fixed small error when transfer ownership API was being used with a PC that was not residing in any folder.
+- Fixed Move Master breaking the Player Token Deletion operation due to editing main body classes.
+
+## 1.5-Beta-4 - Bug Fixes
+- Fix Accidentally deleting tokens when trying to press 'delete' or 'backspace' in a character sheet
+- Add "Send to Chat" buttons to Pokémon & Trainer sheets for all items.
+- Add prePlayerDeleteToken hook for module developers.
+- Fixed some typos in settings.
+
+## 1.5-Beta-3 - Move Origins
+- Automatically guess the origin of a move on a Pokémon's sheet.
+  - Whenever you add a move to a mon, it will check it's Level-Up, Egg, TM & Tutor list (in that order) to see how it is supposed to get this move, and set that as the assumed origin
+
+## 1.5-Beta-2 - Where's Sentret?
+- Added Sentret dex entry to compendium
+- Fixed the 'ActorGenerator.Create' method to allow quick creation of actors that already exist.
+
+## 1.5-Beta-1 - Auto Delete Volatile Conditions
+- Volatile Conditions are now automatically removed at the end of Combat
+  - This can be disabled in the settings.
+- Combat now remembers who has joined a Combat, deleting flinch from all mons that participated, not those that are just currently on the field.
+- Added the 'endOfCombat' hook with params: 'Combat, participantUuids[]'
+
+## 1.5-Beta-0 - Release 1.4 Dev Branch
+Welcome on the 1.5 dev branch, this is the exact same codebase as the 1.4.0 release.
+
 ## 1.4.0 - Foundry 0.8 Release!
 Hey everyone! With the release of PTUVTT 1.4.0 we now have officially moved over to support Foundry 0.8.6!
 

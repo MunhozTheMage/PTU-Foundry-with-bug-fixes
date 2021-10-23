@@ -1,5 +1,6 @@
 import { debug, error, log, PrepareMoveData, warn } from '../ptu.js'
 import { HardenedChanges } from '../data/training-data.js'
+import { sendItemMessage } from '../item/item-sheet.js';
 
 /**
  * Extend the basic ActorSheet with some very simple modifications
@@ -172,6 +173,31 @@ export class PTUGen8PokemonSheet extends ActorSheet {
 
 		// Add Inventory Item
 		html.find('.item-create').click(this._onItemCreate.bind(this));
+
+		// Item to Chat
+		html.find('.item-to-chat').click((ev) => {
+			const li = $(ev.currentTarget).parents('.item');
+			const item = this.actor.items.get(li.data('itemId'));
+
+			switch(item.type) {
+				case "move":
+					return sendMoveMessage({
+						speaker: ChatMessage.getSpeaker({
+							actor: this.actor
+						}),
+						name: item.name,
+						move: item.data.data,
+						templateType: 'details'
+					});
+				default: 
+					return sendItemMessage({
+						speaker: ChatMessage.getSpeaker({
+							actor: this.actor
+						}),
+						item: item
+					});
+			}
+		});
 
 		// Update Inventory Item
 		html.find('.item-edit').click((ev) => {
@@ -441,7 +467,7 @@ export class PTUGen8PokemonSheet extends ActorSheet {
 			let crit = diceResult === 1 ? CritOptions.CRIT_MISS : (diceResult >= 20 - this.actor.data.data.modifiers.critRange?.total) ? CritOptions.CRIT_HIT : CritOptions.NORMAL;
 
 			let damageRoll, critRoll;
-			if(crit != CritOptions.CRIT_MISS) {
+			if((crit != CritOptions.CRIT_MISS) || (moveData.ac == "--")) {
 				switch(game.settings.get("ptu", "combatRollPreference")) {
 					case "situational":
 						if(crit == CritOptions.CRIT_HIT) critRoll = CalculateDmgRoll(moveData, this.actor.data.data, crit);
@@ -585,8 +611,7 @@ export class PTUGen8PokemonSheet extends ActorSheet {
 function CalculateAcRoll(moveData, actor) {
 	return new Roll('1d20-@ac+@acBonus', {
 		ac: (parseInt(moveData.ac) || 0),
-		acBonus: (actor.flags?.ptu?.is_blind ? actor.flags?.ptu?.is_totally_blind ? -10 : -6 : 0) + 
-		(parseInt(actor.data.modifiers.acBonus?.total) || 0)
+		acBonus: (parseInt(actor.data.modifiers.acBonus?.total) || 0)
 	})
 }
 
@@ -620,19 +645,6 @@ function GetDiceResult(roll) {
 		diceResult = roll.parts[0].results[0];
 	}
 	return diceResult;
-}
-
-function PerformAcRoll(roll, move, actor) {
-	sendMoveRollMessage(roll, {
-		speaker: ChatMessage.getSpeaker({
-			actor: actor
-		}),
-		name: move.name,
-		move: move.data,
-		templateType: MoveMessageTypes.TO_HIT
-	}).then(_ => log(`Rolling to hit for ${actor.name}'s ${move.name}`));
-
-	return GetDiceResult(roll);
 }
 
 async function sendMoveRollMessage(rollData, messageData = {}) {

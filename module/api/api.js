@@ -85,8 +85,9 @@ export default class Api {
                 if(!allowed) return ref._returnBridge({result: new ApiError({message: "DM Denied owner transfer", type: 403})}, data);
 
                 const newData = {
-                    folder: pc.folder.id,
+                    folder: pc.folder?.id,
                     permission: mergeObject({
+                        "default": game.settings.get("ptu", "transferOwnershipDefaultValue") ?? 0,
                         [sender.id]: 3
                     }, data.content.options?.permission ?? {}),
                     "data.owner": pc.id,

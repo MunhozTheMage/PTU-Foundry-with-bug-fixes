@@ -53,7 +53,7 @@ export let log = (...args) => console.log("FVTT PTU | ", ...args);
 export let warn = (...args) => console.warn("FVTT PTU | ", ...args);
 export let error = (...args) => console.error("FVTT PTU | ", ...args)
 
-export const LATEST_VERSION = "1.4.0";
+export const LATEST_VERSION = "1.5-Beta-7";
 
 /* -------------------------------------------- */
 /*  Foundry VTT Initialization                  */
@@ -353,6 +353,7 @@ Hooks.once("setup", function() {
   window.addEventListener('keydown', (event) => {
     const key = getKey(event);
     if(["Delete", "Backspace"].includes(key)) {
+      if(!event.target.className.includes("vtt game system-ptu")) return;
       if ( canvas.ready && ( canvas.activeLayer instanceof PlaceablesLayer ) ) {
         const layer = canvas.activeLayer;
 
@@ -362,10 +363,12 @@ Hooks.once("setup", function() {
         const uuids = objects.reduce((uuids, o) => {
           if(o.data.locked || o.document.canUserModify(game.user, "delete")) return uuids;
           if(!o.document.actor.canUserModify(game.user, "delete")) return uuids;
-          uuids.push(o.uuid);
+          uuids.push(o.document?.uuid ?? o.uuid);
           return uuids;
         }, [])
-        if ( uuids.length ) return game.ptu.api.tokensDelete(uuids);
+        if ( uuids.length ) {
+          if(Hooks.call("prePlayerDeleteToken", uuids)) return game.ptu.api.tokensDelete(uuids);
+        }
       }
     }
   });
@@ -695,3 +698,36 @@ Hooks.on("updateInitiative", function(actor) {
   }
   return true;
 }) 
+
+// Whenever a dexentry is added to a sheet, double check if it doesn't already exist
+Hooks.on("preCreateItem", (item, itemData, options, sender) => {
+  if(item.type != "dexentry" || !item.data.data.id) return;
+
+  const entry = item.parent.itemTypes.dexentry.find(e => e.data.data.id == item.data.data.id);
+  if(entry) {
+    log("Dex entry already exists, skipping. This may throw an error, which can be ignored.")
+    return false;
+  }
+})
+
+// Whenever a move is created, add it's origin (or none if it's unable to find it).
+Hooks.on("preCreateItem", async function(item, data, options, sender) {
+  if(item.type != "move") return;
+  let origin = "";
+  const speciesData = game.ptu.GetSpeciesData(item.parent.data.data.species);
+  
+  // All of these have a slightly different format, change them to just be an array of the names with capital letters included.
+  const levelUp = speciesData["Level Up Move List"].map(x => x.Move);
+  const EggMoves = speciesData["Egg Move List"];
+  const TMs = speciesData["TM Move List"].map(x => Handlebars.helpers.tmName(x));
+  const TutorMoves = speciesData["Tutor Move List"].map(x => x.replace("(N)", ""))
+     
+  // Priority Level Up > Egg > TM > Tutor
+  if(TutorMoves.includes(item.name)) origin = "Tutor Move";
+  if(TMs.includes(item.name)) origin = "TM Move";
+  if(EggMoves.includes(item.name)) origin = "Egg Move";
+  if(levelUp.includes(item.name)) origin = "Level Up Move";   
+  
+  // In preCreate[document] hook, you can update a document's data class using `document.data.update` before it is committed to the database and actually created.
+  await item.data.update({"data.origin": origin});
+});
